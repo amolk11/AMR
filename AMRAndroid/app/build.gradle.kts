@@ -47,7 +47,7 @@ android {
         }
     }
     aaptOptions {
-        noCompress("tflite")
+        noCompress("tflite", "onnx")
     }
 }
 
@@ -71,9 +71,10 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
 
-    // TensorFlow Lite
+    // TensorFlow Lite & GPU Acceleration
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.gpu)
+    implementation(libs.tensorflow.lite.gpu.api)
     implementation(libs.tensorflow.lite.support)
 
     // USB Serial

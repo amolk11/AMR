@@ -44,24 +44,33 @@ class TFLitePersonDetector(
             val modelBuffer = loadModelFile(context, modelPath)
             val options = Interpreter.Options().apply {
                 setNumThreads(numThreads)
-                val compatList = CompatibilityList()
-                if (compatList.isDelegateSupportedOnThisDevice) {
-                    val delegateOptions = compatList.bestOptionsForThisDevice
-                    gpuDelegate = GpuDelegate(delegateOptions)
-                    addDelegate(gpuDelegate)
-                    Logger.i("TFLitePersonDetector", "GPU acceleration enabled successfully.")
-                } else {
-                    setUseNNAPI(true)
-                    Logger.i("TFLitePersonDetector", "NNAPI fallback enabled.")
+                try {
+                    val compatList = CompatibilityList()
+                    if (compatList.isDelegateSupportedOnThisDevice) {
+                        val delegateOptions = compatList.bestOptionsForThisDevice
+                        gpuDelegate = GpuDelegate(delegateOptions)
+                        addDelegate(gpuDelegate)
+                        Logger.i("TFLitePersonDetector", "GPU acceleration enabled successfully.")
+                    } else {
+                        setUseNNAPI(true)
+                        Logger.i("TFLitePersonDetector", "NNAPI fallback enabled.")
+                    }
+                } catch (t: Throwable) {
+                    Logger.w("TFLitePersonDetector", "GPU/NNAPI initialization failed, using CPU: ${t.message}")
+                    setNumThreads(numThreads)
                 }
             }
             interpreter = Interpreter(modelBuffer, options)
             Logger.i("TFLitePersonDetector", "TFLite interpreter loaded from $modelPath")
         } catch (e: Exception) {
             Logger.e("TFLitePersonDetector", "Failed to initialize TFLite model, using CPU mode fallback", e)
-            val fallbackOptions = Interpreter.Options().apply { setNumThreads(numThreads) }
-            val modelBuffer = loadModelFile(context, modelPath)
-            interpreter = Interpreter(modelBuffer, fallbackOptions)
+            try {
+                val fallbackOptions = Interpreter.Options().apply { setNumThreads(numThreads) }
+                val modelBuffer = loadModelFile(context, modelPath)
+                interpreter = Interpreter(modelBuffer, fallbackOptions)
+            } catch (fallbackEx: Exception) {
+                Logger.e("TFLitePersonDetector", "Critical failure loading model file $modelPath", fallbackEx)
+            }
         }
     }
 
@@ -109,7 +118,6 @@ class TFLitePersonDetector(
         }
 
         // 3. Output shape for YOLOv8: [1, 84, 8400] (for 80 classes + 4 bbox coords) or [1, 5, 8400]
-        // Standard YOLOv8 output tensor: [1, 84, 8400]
         val outputArray = Array(1) { Array(84) { FloatArray(8400) } }
         val outputMap = mapOf(0 to outputArray)
 
