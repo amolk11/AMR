@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Espressif ESP32-S3 USB-CDC Native (0x303A) -->
+    <usb-device vendor-id="12346" />
+    <!-- Espressif USB JTAG/Serial -->
+    <usb-device vendor-id="12346" product-id="4097" />
+    <!-- Silicon Labs CP210x (0x10C4) -->
+    <usb-device vendor-id="4292" />
+    <!-- FTDI (0x0403) -->
+    <usb-device vendor-id="1027" />
+    <!-- WCH CH340 / CH341 (0x1A86) -->
+    <usb-device vendor-id="6790" />
+</resources>
